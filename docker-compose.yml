@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # Jenkins Service
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins
+    ports:
+      - "8080:8080"   # Expose Jenkins on port 8080
+      - "50000:50000" # Expose Jenkins agent port
+    volumes:
+      - jenkins_home:/var/jenkins_home # Persist Jenkins data
+    environment:
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false  # Disable Jenkins setup wizard
+    networks:
+      - jenkins-sonar-net
+
+  # SonarQube Service
+  sonarqube:
+    image: sonarqube:latest
+    container_name: sonarqube
+    ports:
+      - "9000:9000"  # Expose SonarQube on port 9000
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data  # Persist SonarQube data
+      - sonarqube_extensions:/opt/sonarqube/extensions # Persist SonarQube extensions
+    environment:
+      - SONARQUBE_JDBC_URL=jdbc:postgresql://postgres:5432/sonar  # Connect SonarQube to PostgreSQL (defined below)
+    networks:
+      - jenkins-sonar-net
+
+  # PostgreSQL Service for SonarQube
+  postgres:
+    image: postgres:13
+    container_name: postgres
+    environment:
+      - POSTGRES_USER=sonar
+      - POSTGRES_PASSWORD=sonar
+      - POSTGRES_DB=sonar
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - jenkins-sonar-net
+
+# Define networks and volumes
+networks:
+  jenkins-sonar-net:
+    driver: bridge
+
+volumes:
+  jenkins_home:
+  sonarqube_data:
+  sonarqube_extensions:
+  postgres_data:

@@ -2,33 +2,21 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = "your-dockerhub-username/sample-app" // Replace with your DockerHub repo
+        DOCKER_IMAGE = "smdotcom/sample-app"
         DOCKER_TAG = "latest"
     }
 
     stages {
-        stage('Checkout Code') {
+        stage('Load Env File') {
             steps {
-                echo 'Cloning the repository...'
-                git branch: 'branchTwo', url: 'https://github.com/sm-dotcom/Dev_Assignment1.git' // Replace with your repo URL
-            }
-        }
-
-        stage('Run SonarQube Analysis') {
-            steps {
-                echo 'Running SonarQube analysis...'
-                withSonarQubeEnv('SonarQube') { // Ensure SonarQube is configured in Jenkins
-                    sh 'sonar-scanner'
+                echo 'Loading environment variables...'
+                script {
+                    def envFile = readFile '.env'
+                    envFile.eachLine { line ->
+                        def (key, value) = line.split('=')
+                        env[key] = value
+                    }
                 }
-            }
-        }
-
-        stage('Build Docker Image') {
-            steps {
-                echo 'Building Docker image...'
-                sh """
-                docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} .
-                """
             }
         }
 
@@ -40,18 +28,6 @@ pipeline {
                 docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
                 """
             }
-        }
-    }
-
-    post {
-        always {
-            echo 'Pipeline completed.'
-        }
-        success {
-            echo 'Pipeline succeeded!'
-        }
-        failure {
-            echo 'Pipeline failed!'
         }
     }
 }

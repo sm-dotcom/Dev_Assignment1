@@ -10,7 +10,7 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 echo 'Cloning the repository...'
-                git branch: 'main', url: 'https://github.com/your-repo-url.git' // Replace with your repo URL
+                git branch: 'branchTwo', url: 'https://github.com/sm-dotcom/Dev_Assignment1.git' // Replace with your repo URL
             }
         }
 
